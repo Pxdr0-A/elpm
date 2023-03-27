@@ -1,3 +1,6 @@
+mod data;
+
 fn main() {
-    println!("Hello, world!");
+    // if a main thread ends, all other threads end!
+    data::build_sample();
 }
