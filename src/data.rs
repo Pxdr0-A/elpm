@@ -22,7 +22,27 @@ impl<'a> NumericDataset<'a> {
 
         let body = empty_array.map(add_chaos);
 
-        NumericDataset { body, body_shape, target }
+        NumericDataset { body: empty_array, body_shape, target }
+    }
+}
+
+pub mod random {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    pub fn rand() {
+        let inst1 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+        let inst2 = SystemTime::now().elapsed();
+        println!("{:?}",inst1);
+        println!("Since when it was created {:?}", inst2);
+        
+        let num1 = vec![2, 3];
+        let num2 = vec![2, 3];
+        let address1 = &num1 as *const Vec<i32>;
+        let address2 = &num2 as *const Vec<i32>;
+        let number1 = address1 as i32;
+        let number2 = address2 as i32;
+        println!("{}", number1);
+        println!("{}", number2);
     }
 }
 
