@@ -30,19 +30,21 @@ pub mod random {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     pub fn rand() {
-        let inst1 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
-        let inst2 = SystemTime::now().elapsed();
-        println!("{:?}",inst1);
-        println!("Since when it was created {:?}", inst2);
-        
-        let num1 = vec![2, 3];
-        let num2 = vec![2, 3];
-        let address1 = &num1 as *const Vec<i32>;
-        let address2 = &num2 as *const Vec<i32>;
-        let number1 = address1 as i32;
-        let number2 = address2 as i32;
-        println!("{}", number1);
-        println!("{}", number2);
+        let num1: Vec<u32> = vec![1, 2, 3];
+        let num2: Vec<u32> = vec![1, 2, 3];
+        let address1 = &num1 as *const Vec<u32>;
+        let address2 = &num2 as *const Vec<u32>;
+        let wait_fct1 = address1 as u32;
+        let wait_fct2 = address2 as u32;
+
+        println!("{}", wait_fct1 % 37);
+        println!("{}", wait_fct2 % 37);
+        // let inst1 = SystemTime::now();
+        // do a while to simulate a coin flip
+    }
+
+    fn prd_linear_function() {
+
     }
 }
 
