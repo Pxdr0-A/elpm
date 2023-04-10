@@ -26,50 +26,52 @@ impl<'a> NumericDataset<'a> {
     }
 }
 
-pub mod random {
-    use std::time::Instant;
-
-    pub fn rand() {
-        let num1 = Vec::with_capacity(3);
-        let num2 = Vec::with_capacity(3);
-        let address1 = &num1 as *const Vec<u8>;
-        let address2 = &num2 as *const Vec<u8>;
-        let wait_fct1 = address1 as u128 % 37;
-        let wait_fct2 = address2 as u128 % 37;
-
-        // do a while to simulate a coin flip
-        let mut n: u128 = 0;
-        let init_clock = Instant::now();
-        let mut new_clock: Instant = Instant::now();
-        let mut duration: u128 = 0;
-        loop {
-            n += 1;
-
-            duration = new_clock.duration_since(init_clock).as_nanos();
-            if duration < 100_000_000u128 + wait_fct1 {
-                new_clock = Instant::now();
-            } else {
-                break;
-            }
-        }
-
-        println!("{}", n);
-        prd_linear_function(&16u8, &n);
-    }
-
-    fn prd_linear_function(bits: &u8, point: &u128) {
-        // define slope
-        let m: f64 = 1.0/(2u32.pow(*bits as u32) as f64);
-        let cycles = (*point as f64)/(*bits as f64);
-        println!("{}", cycles - ((cycles as u32) as f64));
-        // define period by multiples of bits
-    }
-}
-
 pub fn map_2d_array(i: &u32, j: &u32, dim: [u32 ;2]) -> u32 {
     i + j*dim[1]
 }
 
 pub fn build_sample() {
     //let dataset = NumericDataset::sample();
+}
+
+pub mod random {
+    pub fn lcg(seed: u128) -> (u128, f64) {
+        // cc65 params
+        let a: u128 = 16843009;
+        let b: u128 = 3014898611;
+        let m: u128 = 2u128.pow(32);
+        // m and b need to be relativily prime
+
+        let rand_num = (a*seed + b) %  (m - 1);
+        let rand = (rand_num as f64)/(m as f64);
+
+        (rand_num, rand)
+    }
+
+    pub fn test_lcg(seed: u128) -> (f64, f64, f64) {
+        let mut max_val: f64 = 0.0;
+        let mut min_val: f64 = 1.0;
+        let mut avg_val: f64 = 0.0;
+        { // loop scope
+            let n_tests: u128 = 10_000;
+            let mut rand_num_int: u128 = seed;
+            let mut rand_num_float: f64;
+            for _ in 0..n_tests {
+                (rand_num_int, rand_num_float) = lcg(rand_num_int);
+                avg_val += rand_num_float;
+                if rand_num_float < max_val && rand_num_float > min_val {
+                    continue;
+                } else if rand_num_float > max_val {
+                    max_val = rand_num_float;
+                } else if rand_num_float < min_val {
+                    min_val = rand_num_float;
+                }
+            }
+
+            avg_val = avg_val/(n_tests as f64);
+            // rand_num, n_tests will say goodbye here
+        }
+
+        (max_val, min_val, avg_val)
+    }
 }
