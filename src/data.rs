@@ -1,37 +1,48 @@
 #[derive(Debug)]
-pub struct NumericDataset<'a> {
-    body: &'a[f64],
-    body_shape: &'a[u32],
-    target: &'a[u8]
+pub struct TwoDimVec {
+    body: Vec<f64>,
+    shape: [usize; 2],
+    capacity: [usize; 2]
 }
 
-impl<'a> NumericDataset<'a> {
-    fn sample(n_class: &u8) -> NumericDataset<'a> {
-        // defining 100 data points and 10 arbitrary features
-        let empty_array = &[1.0; 100*10];
-        let body_shape: &[u32] = &[100, 10];
-        let target: &[u8] = &[0; 100];
-        
-        // apply some maps to introduce some interesting patterns in the data
-        let mut index = 0;
-        let add_chaos = |x: f64| {
-            // implement a random number generator
-            // define classes domain
-            index += 1;
-        };
+impl TwoDimVec {
+    pub fn allocate(capacity: [usize; 2]) -> TwoDimVec {
+        // allocates enough memory
+        let body = Vec::with_capacity(capacity[0]*capacity[1]);
+        let shape = [0, 0];
+        TwoDimVec { body, shape, capacity }
+    }
 
-        let body = empty_array.map(add_chaos);
+    pub fn elm(self, i: &usize, j: &usize) -> f64 {
+        // i - lines; j - columns
+        // check for search validity
+        self.body[i*self.shape[1] + j]
+    }
 
-        NumericDataset { body: empty_array, body_shape, target }
+    pub fn add_row(&mut self, row: &mut Vec<f64>) {
+        // call inside an expression where mut Vec<f64> is declared
+        // add verification for capacity and insertion
+        self.shape[0] += 1;
+        self.shape[1] = row.len();
+        self.body.append(row);
     }
 }
 
-pub fn map_2d_array(i: &u32, j: &u32, dim: [u32 ;2]) -> u32 {
-    i + j*dim[1]
+#[derive(Debug)]
+pub struct NumericDataset {
+    body: TwoDimVec,
+    target:Vec<f64>,
+    shape: [usize; 2],
+    capacity: [usize; 2]
 }
 
-pub fn build_sample() {
-    //let dataset = NumericDataset::sample();
+impl NumericDataset {
+    pub fn allocate(capacity: [usize; 2]) -> NumericDataset {
+        let target = Vec::with_capacity(capacity[0]);
+        let body = TwoDimVec::allocate(capacity);
+        let shape = [0, 0];
+        NumericDataset { body, target, shape, capacity }
+    }
 }
 
 pub mod random {
@@ -40,7 +51,6 @@ pub mod random {
         let a: u128 = 16843009;
         let b: u128 = 3014898611;
         let m: u128 = 2u128.pow(32);
-        // m and b need to be relativily prime
 
         let rand_num = (a*seed + b) %  (m - 1);
         let rand = (rand_num as f64)/(m as f64);
