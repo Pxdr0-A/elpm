@@ -10,9 +10,10 @@ fn main() {
     println!("{:?}", results);
 
     let shape: [usize; 2] = [3,4];
-    let mut grid = TwoDimVec::allocate(shape);
+    let mut grid = TwoDimVec::new(shape);
     println!("{:?}", grid);
 
+    // testing TwoDimVec
     { // add a row
         let mut row = vec![1.0,2.0,3.0,5.0];
         grid.add_row(&mut row);
@@ -25,5 +26,8 @@ fn main() {
         // row will say goodbye
     }
     println!("{:?}", grid);
+    println!("{:?}", grid.row(&0));
     println!("{:?}", grid.elm(&1, &3));
+
+    // testing NumericDataset
 }

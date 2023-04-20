@@ -6,17 +6,28 @@ pub struct TwoDimVec {
 }
 
 impl TwoDimVec {
-    pub fn allocate(capacity: [usize; 2]) -> TwoDimVec {
+    pub fn new(capacity: [usize; 2]) -> TwoDimVec {
         // allocates enough memory
         let body = Vec::with_capacity(capacity[0]*capacity[1]);
         let shape = [0, 0];
         TwoDimVec { body, shape, capacity }
     }
 
-    pub fn elm(self, i: &usize, j: &usize) -> f64 {
+    pub fn elm(&self, i: &usize, j: &usize) -> f64 {
         // i - lines; j - columns
         // check for search validity
-        self.body[i*self.shape[1] + j]
+        let elm = self.body[i*self.shape[1] + j];
+
+        elm
+    }
+
+    pub fn row(&self, i: &usize) -> Vec<f64> {
+        let init = i*self.shape[1];
+        let end = i*self.shape[1] + self.shape[1];
+
+        let selection = Vec::from(&self.body[init..end]);
+
+        selection
     }
 
     pub fn add_row(&mut self, row: &mut Vec<f64>) {
@@ -37,11 +48,19 @@ pub struct NumericDataset {
 }
 
 impl NumericDataset {
-    pub fn allocate(capacity: [usize; 2]) -> NumericDataset {
+    pub fn new(capacity: [usize; 2]) -> NumericDataset {
         let target = Vec::with_capacity(capacity[0]);
-        let body = TwoDimVec::allocate(capacity);
+        let body = TwoDimVec::new(capacity);
         let shape = [0, 0];
         NumericDataset { body, target, shape, capacity }
+    }
+
+    pub fn row(&self, i: &usize) -> (Vec<f64>, f64) {
+        // check validity of the search
+        let target_search = self.target[*i];
+        let line_search = self.body.row(i);
+
+        (line_search, target_search)
     }
 }
 
