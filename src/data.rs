@@ -16,12 +16,37 @@ impl TwoDimVec {
     pub fn elm(&self, i: &usize, j: &usize) -> f64 {
         // i - lines; j - columns
         // check for search validity
+        match TwoDimVec::check_elm_search(self, i, j) {
+            Ok(()) => {},
+            Err(SearchError::IndexError(value)) => {
+                panic!("Index out of bonds for axis {}.", value)
+            }
+        }
+
         let elm = self.body[i*self.shape[1] + j];
 
         elm
     }
 
+    fn check_elm_search(data: &TwoDimVec, i: &usize, j: &usize) -> Result<(), SearchError> {
+        if data.shape[0] < *i {
+            Err(SearchError::IndexError(0))
+        } else if data.shape[1] < *j {
+            Err(SearchError::IndexError(1))
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn row(&self, i: &usize) -> Vec<f64> {
+        //check validity of the search
+        match TwoDimVec::check_row_search(self, i) {
+            Ok(()) => {},
+            Err(SearchError::IndexError(value)) => {
+                panic!("Index out of bonds for axis {}.", value)
+            }
+        }
+
         let init = i*self.shape[1];
         let end = i*self.shape[1] + self.shape[1];
 
@@ -30,12 +55,42 @@ impl TwoDimVec {
         selection
     }
 
+    fn check_row_search(data: &TwoDimVec, i: &usize) -> Result<(), SearchError> {
+        if data.shape[0] < *i {
+            Err(SearchError::IndexError(0))
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn add_row(&mut self, row: &mut Vec<f64>) {
         // call inside an expression where mut Vec<f64> is declared
         // add verification for capacity and insertion
+        match TwoDimVec::check_addition(self, row.len()) {
+            Ok(()) => {},
+            Err(AdditionError::CapacityError(value)) => {
+                panic!("Exceeded two dimensional vector capacity on axis {}.", value)
+            },
+            Err(AdditionError::IncoherentShapeError) => {
+                panic!("Attempting to add a row with incompatible number of elements.")
+            }
+        }
+
         self.shape[0] += 1;
         self.shape[1] = row.len();
         self.body.append(row);
+    }
+
+    fn check_addition(data: &mut TwoDimVec, row_len: usize) -> Result<(), AdditionError> {
+        if data.capacity[0] == data.shape[0] {
+            Err(AdditionError::CapacityError(0))
+        } else if data.capacity[1] < row_len && data.shape[1] == 0 {
+            Err(AdditionError::CapacityError(1))
+        } else if data.shape[1] != row_len && data.shape[1] != 0 {
+            Err(AdditionError::IncoherentShapeError)
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -57,50 +112,64 @@ impl NumericDataset {
 
     pub fn row(&self, i: &usize) -> (Vec<f64>, f64) {
         // check validity of the search
+        match NumericDataset::check_search(self, i) {
+            Ok(()) => {},
+            Err(SearchError::IndexError(value)) => {
+                panic!("Index out of bonds for axis {}.", value)
+            }
+        }
+
         let target_search = self.target[*i];
         let line_search = self.body.row(i);
 
         (line_search, target_search)
     }
-}
 
-pub mod random {
-    pub fn lcg(seed: u128) -> (u128, f64) {
-        // cc65 params
-        let a: u128 = 16843009;
-        let b: u128 = 3014898611;
-        let m: u128 = 2u128.pow(32);
-
-        let rand_num = (a*seed + b) %  (m - 1);
-        let rand = (rand_num as f64)/(m as f64);
-
-        (rand_num, rand)
+    fn check_search(dataset: &NumericDataset, i: &usize) -> Result<(), SearchError> {
+        if dataset.shape[0] < *i {
+            Err(SearchError::IndexError(0))
+        } else {
+            Ok(())
+        }
     }
 
-    pub fn test_lcg(seed: u128) -> (f64, f64, f64) {
-        let mut max_val: f64 = 0.0;
-        let mut min_val: f64 = 1.0;
-        let mut avg_val: f64 = 0.0;
-        { // loop scope
-            let n_tests: u128 = 10_000;
-            let mut rand_num_int: u128 = seed;
-            let mut rand_num_float: f64;
-            for _ in 0..n_tests {
-                (rand_num_int, rand_num_float) = lcg(rand_num_int);
-                avg_val += rand_num_float;
-                if rand_num_float < max_val && rand_num_float > min_val {
-                    continue;
-                } else if rand_num_float > max_val {
-                    max_val = rand_num_float;
-                } else if rand_num_float < min_val {
-                    min_val = rand_num_float;
-                }
+    pub fn add_row(&mut self, row: &mut Vec<f64>, target_val: &f64) {
+        // call inside an expression where mut Vec<f64> is declared
+        // verification for capacity and insertion
+        match NumericDataset::check_addition(self, row.len()) {
+            Ok(()) => {},
+            Err(AdditionError::CapacityError(value)) => {
+                panic!("Exceeded dataset capacity on axis {}.", value)
+            },
+            Err(AdditionError::IncoherentShapeError) => {
+                panic!("Attempting to add a row with incompatible number of elements.")
             }
-
-            avg_val = avg_val/(n_tests as f64);
-            // rand_num, n_tests will say goodbye here
         }
 
-        (max_val, min_val, avg_val)
+        self.shape[0] += 1;
+        self.shape[1] = row.len();
+        self.body.add_row(row);
+        self.target.push(*target_val);
     }
+
+    fn check_addition(dataset: &mut NumericDataset, row_len: usize) -> Result<(), AdditionError> {
+        if dataset.capacity[0] == dataset.shape[0] {
+            Err(AdditionError::CapacityError(0))
+        } else if dataset.capacity[1] < row_len && dataset.shape[1] == 0 {
+            Err(AdditionError::CapacityError(1))
+        } else if dataset.shape[1] != row_len && dataset.shape[1] != 0 {
+            Err(AdditionError::IncoherentShapeError)
+        } else {
+            Ok(())
+        }
+    }
+}
+
+enum SearchError {
+    IndexError(usize)
+}
+
+enum AdditionError {
+    CapacityError(usize),
+    IncoherentShapeError
 }
