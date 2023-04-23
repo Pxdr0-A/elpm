@@ -114,25 +114,23 @@ impl NumericDataset {
         NumericDataset { body, target, shape, capacity }
     }
 
-    pub fn sample(shape: [usize; 2], n_classes: usize) {
+    pub fn sample(shape: [usize; 2], n_classes: usize) -> (HashMap<String, Vec<f64>>, NumericDataset) {
         let mut dataset = NumericDataset::new(shape);
 
         // build cluster centers
         let mut centers: HashMap<String, Vec<f64>> = HashMap::new();
         { // loop scope for contructing centers
-            let mut key_center: String;
             // i n classes
             for i in 0..n_classes {
-                key_center = format!("center{}", i);
                 let mut added_val;
                 let mut added_vec: Vec<f64> = Vec::with_capacity(shape[1]);
                 // j coordenates (features)
                 for j in 0..shape[1] {
                     // build center out of random numbers
                     (_, added_val) = random::lcg(
-                        100_000u128 +
-                        (i as u128) * 1_000u128 * (shape[1] as u128) +
-                        (j as u128) * 100u128
+                        101_305u128 +
+                        (i as u128) * 1_434u128 * (shape[1] as u128) +
+                        (j as u128) * 157u128
                     );
                     added_vec.push(added_val * 100.0);
                 }
@@ -140,22 +138,19 @@ impl NumericDataset {
                     format!("center {}", i).to_string(),
                     added_vec);
             }
-            // key_centers will go
-            // added_val will go
-            // added_vec will go
         }
-        
+
+        let mut lcg_val: f64 = 0.0;
+        let mut inner_count: f64 = 0.0;
         { // initial values (guarantee at least one point per class)
-            let mut count: f64 = 0.0;
-            let mut inner_count: f64 = 0.0;
             let mut added_row: Vec<f64>;
-            let mut lcg_val: f64 = 0.0;
+            let mut count: f64 = 0.0;
             for center in centers.values() {
                 added_row = center.into_iter().map(|x| {
                     (_, lcg_val) = random::lcg(
-                        1_000u128 +
-                        1_000 * (count as u128) +
-                        100 * (inner_count as u128)
+                        1_837u128 +
+                        1_713 * (count as u128) +
+                        192 * (inner_count as u128)
                     );
                     inner_count += 1.0;
                     x + if lcg_val > 0.5 {lcg_val} else {-lcg_val} * 10.0
@@ -167,14 +162,46 @@ impl NumericDataset {
                 
                 count += 1.0;
             }
+
         }
-        
+
         { // rest of the rows (n_classes were already done)
-            
+            let mut class_val: f64;
+            let mut key: String;
+            let mut center: &Vec<f64>;
+            let mut added_row: Vec<f64>;
+            let mut index: usize;
+            for point in n_classes..shape[0] {
+                (_, lcg_val) = random::lcg(
+                    1_153u128 +
+                    100 * (point as u128)
+                );
+                println!("{}", lcg_val);
+                class_val = (lcg_val * (n_classes as f64 - 1.0)).round();
+                key = format!("center {}", class_val as usize).to_string();
+
+                // unwrap does not panic
+                // except panics if the result is None
+                center = centers.get(&key).expect("Did not find the value for the search key");
+                index = 0;
+                added_row = vec![1.0; center.len()].into_iter().map(|x| {
+                    // go through the coordinates
+                    (_, lcg_val) = random::lcg(
+                        1_837u128 +
+                        1_713 * (point as u128) +
+                        192 * (inner_count as u128)
+                    );
+                    inner_count += 1.0;
+                    index += 1;
+
+                    x*center[index - 1] + if lcg_val > 0.5 {lcg_val} else {-lcg_val} * 10.0
+                }).collect();
+
+                dataset.add_row(&mut added_row, &class_val);
+            }
         }
-        
-        println!("{:?}", centers);
-        println!("{:?}", dataset);
+
+        (centers, dataset)
     }
 
     pub fn row(&self, i: &usize) -> (Vec<f64>, f64) {
