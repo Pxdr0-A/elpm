@@ -176,12 +176,12 @@ impl NumericDataset {
                     1_153u128 +
                     100 * (point as u128)
                 );
-                println!("{}", lcg_val);
+
                 class_val = (lcg_val * (n_classes as f64 - 1.0)).round();
                 key = format!("center {}", class_val as usize).to_string();
 
                 // unwrap does not panic
-                // except panics if the result is None
+                // expect panics if the result is None
                 center = centers.get(&key).expect("Did not find the value for the search key");
                 index = 0;
                 added_row = vec![1.0; center.len()].into_iter().map(|x| {
