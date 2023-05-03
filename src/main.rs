@@ -1,12 +1,11 @@
 use std::collections::HashMap;
 
-use crate::core::TwoDimVec;
 use crate::core::NumericDataset;
 
 mod core;
 mod draw;
 
-const SHAPE: [usize; 2] = [200, 2];
+const SHAPE: [usize; 2] = [100, 2];
 const CLASSES: usize = 4;
 
 fn main() {
