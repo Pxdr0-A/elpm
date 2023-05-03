@@ -85,7 +85,7 @@ impl NumericDataset {
         NumericDataset { body, target, shape, capacity }
     }
 
-    pub fn sample(shape: [usize; 2], n_classes: usize) -> (HashMap<String, Vec<f64>>, NumericDataset) {
+    pub fn sample(shape: [usize; 2], n_classes: usize) -> NumericDataset {
         let mut dataset = NumericDataset::new(shape);
         // seed for the lcg
         let next_val: u128 = 1;
@@ -95,7 +95,7 @@ impl NumericDataset {
         crate::core::build_random_centers(&mut centers, &shape, n_classes, next_val);
         crate::core::add_random_points(&mut dataset, &mut centers, &shape, n_classes, next_val);
 
-        (centers, dataset)
+        dataset
     }
 
     pub fn row(&self, i: &usize) -> (Vec<f64>, f64) {
