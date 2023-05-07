@@ -1,7 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::collections::HashMap;
-
-mod random;
+use random_lcg::prelude::*;
 
 #[derive(Debug)]
 pub struct TwoDimVec {
@@ -205,7 +204,7 @@ fn build_random_centers(centers: &mut HashMap<String, Vec<f64>>, shape: &[usize]
         // j coordenates (features)
         for _ in 0..shape[1] {
             // build center out of random numbers
-            (next_val, added_val) = random::lcg(next_val);
+            (next_val, added_val) = lcg(next_val);
             added_vec.push(added_val * 100.0);
         }
         centers.insert(
@@ -225,7 +224,7 @@ fn add_random_points(dataset: &mut NumericDataset, centers: &mut HashMap<String,
     // for an additional random number
     let mut nanos: u128 = 0;
     for c in 0..shape[0] {
-        (next_val, lcg_val) = random::lcg(next_val);
+        (next_val, lcg_val) = lcg(next_val);
 
         // garantee the initial values are one of each class
         if c < n_classes {
@@ -241,7 +240,7 @@ fn add_random_points(dataset: &mut NumericDataset, centers: &mut HashMap<String,
         index = 0;
         added_row = vec![1.0; center.len()].into_iter().map(|x| {
             // go through the coordinates
-            (next_val, lcg_val) = random::lcg(next_val);
+            (next_val, lcg_val) = lcg(next_val);
             index += 1;
             nanos = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
             x*center[index - 1] + if nanos % 2 == 0 {lcg_val} else {-lcg_val} * ((nanos % 20) as f64)
