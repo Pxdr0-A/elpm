@@ -84,15 +84,13 @@ impl NumericDataset {
         NumericDataset { body, target, shape, capacity }
     }
 
-    pub fn sample(shape: [usize; 2], n_classes: usize) -> NumericDataset {
+    pub fn sample(shape: [usize; 2], n_classes: usize, seed: u128) -> NumericDataset {
         let mut dataset = NumericDataset::new(shape);
-        // seed for the lcg
-        let next_val: u128 = 1;
         // build cluster centers
         let mut centers: HashMap<String, Vec<f64>> = HashMap::new();
 
-        crate::core::build_random_centers(&mut centers, &shape, n_classes, next_val);
-        crate::core::add_random_points(&mut dataset, &mut centers, &shape, n_classes, next_val);
+        crate::core::build_random_centers(&mut centers, &shape, n_classes, seed);
+        crate::core::add_random_points(&mut dataset, &mut centers, &shape, n_classes, seed);
 
         dataset
     }
@@ -195,7 +193,10 @@ mod error_handling {
     }
 }
 
-fn build_random_centers(centers: &mut HashMap<String, Vec<f64>>, shape: &[usize], n_classes: usize, mut next_val: u128) {
+fn build_random_centers(centers: &mut HashMap<String, Vec<f64>>,
+                        shape: &[usize],
+                        n_classes: usize,
+                        mut next_val: u128) {
     // loop scope for contructing centers
     // i n classes
     let mut added_val: f64;
@@ -213,7 +214,11 @@ fn build_random_centers(centers: &mut HashMap<String, Vec<f64>>, shape: &[usize]
     }
 }
 
-fn add_random_points(dataset: &mut NumericDataset, centers: &mut HashMap<String, Vec<f64>>, shape: &[usize], n_classes: usize, mut next_val: u128) {
+fn add_random_points(dataset: &mut NumericDataset,
+                     centers: &mut HashMap<String, Vec<f64>>,
+                     shape: &[usize],
+                     n_classes: usize,
+                     mut next_val: u128) {
     // rest of the rows (n_classes were already done)
     let mut class_val: f64;
     let mut lcg_val: f64;
