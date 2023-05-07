@@ -258,6 +258,7 @@ name = "elpm"
 version = "0.1.0"
 dependencies = [
  "plotters",
+ "random_lcg",
 ]
 
 [[package]]
@@ -627,6 +628,12 @@ checksum = "4424af4bf778aae2051a77b60283332f386554255d722233d09fbfc7e30da2fc"
 dependencies = [
  "proc-macro2",
 ]
+
+[[package]]
+name = "random_lcg"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9529bca206c3432fb68277c25a0eae5ef40ffc0994ab3d94bc80de1043826205"
 
 [[package]]
 name = "redox_syscall"
