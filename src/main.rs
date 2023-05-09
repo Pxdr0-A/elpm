@@ -1,7 +1,7 @@
-use crate::core::NumericDataset;
-
 mod core;
 mod draw;
+
+use crate::core::NumericDataset;
 
 const SHAPE: [usize; 2] = [500, 2];
 const CLASSES: usize = 5;

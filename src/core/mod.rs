@@ -1,3 +1,5 @@
+pub mod model;
+
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::collections::HashMap;
 use random_lcg::prelude::*;
@@ -130,68 +132,7 @@ impl NumericDataset {
     }
 }
 
-mod error_handling {
-    pub enum SearchError {
-        IndexError(usize)
-    }
 
-    pub enum AdditionError {
-        CapacityError(usize),
-    IncoherentShapeError
-    }
-
-    // TwoDimVec
-    pub fn check_elm_search(data: &super::TwoDimVec, i: &usize, j: &usize) -> Result<(), SearchError> {
-        if data.shape[0] < *i {
-            Err(SearchError::IndexError(0))
-        } else if data.shape[1] < *j {
-            Err(SearchError::IndexError(1))
-        } else {
-            Ok(())
-        }
-    }
-
-    pub fn check_row_search(data: &super::TwoDimVec, i: &usize) -> Result<(), SearchError> {
-        if data.shape[0] < *i {
-            Err(SearchError::IndexError(0))
-        } else {
-            Ok(())
-        }
-    }
-
-    pub fn check_addition(data: &mut super::TwoDimVec, row_len: usize) -> Result<(), AdditionError> {
-        if data.capacity[0] == data.shape[0] {
-            Err(AdditionError::CapacityError(0))
-        } else if data.capacity[1] < row_len && data.shape[1] == 0 {
-            Err(AdditionError::CapacityError(1))
-        } else if data.shape[1] != row_len && data.shape[1] != 0 {
-            Err(AdditionError::IncoherentShapeError)
-        } else {
-            Ok(())
-        }
-    }
-
-    // NumericDataset
-    pub fn check_search(dataset: &super::NumericDataset, i: &usize) -> Result<(), SearchError> {
-        if dataset.shape[0] < *i {
-            Err(SearchError::IndexError(0))
-        } else {
-            Ok(())
-        }
-    }
-
-    pub fn check_dataset_addition(dataset: &mut super::NumericDataset, row_len: usize) -> Result<(), AdditionError> {
-        if dataset.capacity[0] == dataset.shape[0] {
-            Err(AdditionError::CapacityError(0))
-        } else if dataset.capacity[1] < row_len && dataset.shape[1] == 0 {
-            Err(AdditionError::CapacityError(1))
-        } else if dataset.shape[1] != row_len && dataset.shape[1] != 0 {
-            Err(AdditionError::IncoherentShapeError)
-        } else {
-            Ok(())
-        }
-    }
-}
 
 fn build_random_centers(centers: &mut HashMap<String, Vec<f64>>,
                         shape: &[usize],
@@ -252,5 +193,68 @@ fn add_random_points(dataset: &mut NumericDataset,
         }).collect();
 
         dataset.add_row(&mut added_row, &class_val);
+    }
+}
+
+mod error_handling {
+    pub enum SearchError {
+        IndexError(usize)
+    }
+
+    pub enum AdditionError {
+        CapacityError(usize),
+    IncoherentShapeError
+    }
+
+    // TwoDimVec
+    pub fn check_elm_search(data: &super::TwoDimVec, i: &usize, j: &usize) -> Result<(), SearchError> {
+        if data.shape[0] < *i {
+            Err(SearchError::IndexError(0))
+        } else if data.shape[1] < *j {
+            Err(SearchError::IndexError(1))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn check_row_search(data: &super::TwoDimVec, i: &usize) -> Result<(), SearchError> {
+        if data.shape[0] < *i {
+            Err(SearchError::IndexError(0))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn check_addition(data: &mut super::TwoDimVec, row_len: usize) -> Result<(), AdditionError> {
+        if data.capacity[0] == data.shape[0] {
+            Err(AdditionError::CapacityError(0))
+        } else if data.capacity[1] < row_len && data.shape[1] == 0 {
+            Err(AdditionError::CapacityError(1))
+        } else if data.shape[1] != row_len && data.shape[1] != 0 {
+            Err(AdditionError::IncoherentShapeError)
+        } else {
+            Ok(())
+        }
+    }
+
+    // NumericDataset
+    pub fn check_search(dataset: &super::NumericDataset, i: &usize) -> Result<(), SearchError> {
+        if dataset.shape[0] < *i {
+            Err(SearchError::IndexError(0))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn check_dataset_addition(dataset: &mut super::NumericDataset, row_len: usize) -> Result<(), AdditionError> {
+        if dataset.capacity[0] == dataset.shape[0] {
+            Err(AdditionError::CapacityError(0))
+        } else if dataset.capacity[1] < row_len && dataset.shape[1] == 0 {
+            Err(AdditionError::CapacityError(1))
+        } else if dataset.shape[1] != row_len && dataset.shape[1] != 0 {
+            Err(AdditionError::IncoherentShapeError)
+        } else {
+            Ok(())
+        }
     }
 }
