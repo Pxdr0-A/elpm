@@ -3,7 +3,7 @@ from sklearn.cluster import KMeans
 import pandas as pd
 
 
-class ElipsoideModel():
+class ElipsoideModel:
     def __init__(self, n_init, tol):
         self.elipsoide_params = {}
         self.cluster_centers = []
@@ -14,8 +14,8 @@ class ElipsoideModel():
         classes = pd.unique(y["label"])
         classes_order = []
         for c in classes:
-            kmeanModel = KMeans(n_clusters=1, n_init=self.number_init).fit(x.loc[y['label'] == c])
-            centroids = kmeanModel.cluster_centers_
+            kmodel = KMeans(n_clusters=1, n_init=self.number_init).fit(x.loc[y['label'] == c])
+            centroids = kmodel.cluster_centers_
             self.cluster_centers.append(centroids)
             classes_order.append(c)
 
