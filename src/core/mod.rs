@@ -4,9 +4,17 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use std::collections::HashMap;
 use random_lcg::prelude::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TwoDimVec {
     body: Vec<f64>,
+    shape: [usize; 2],
+    capacity: [usize; 2]
+}
+
+#[derive(Debug, Clone)]
+pub struct NumericDataset {
+    body: TwoDimVec,
+    target:Vec<f64>,
     shape: [usize; 2],
     capacity: [usize; 2]
 }
@@ -70,14 +78,6 @@ impl TwoDimVec {
     }
 }
 
-#[derive(Debug)]
-pub struct NumericDataset {
-    body: TwoDimVec,
-    target:Vec<f64>,
-    shape: [usize; 2],
-    capacity: [usize; 2]
-}
-
 impl NumericDataset {
     pub fn new(capacity: [usize; 2]) -> NumericDataset {
         let target = Vec::with_capacity(capacity[0]);
@@ -112,6 +112,24 @@ impl NumericDataset {
         (line_search, target_search)
     }
 
+    pub fn select_class(&self, class: f64) -> TwoDimVec {
+        let mut class_vec = TwoDimVec::new(self.shape);
+        // this way, it is more readable but could just &mut var
+        let ref mut class_vec_ref = class_vec;
+        for i in 0..self.shape[0] {
+            if self.target[i] == class {
+                class_vec_ref.add_row(
+                    // mutable ref of a row in the dataset
+                    // if I wanted to access self.row(&i) from
+                    // from the outside the if, I could not, is freed
+                    &mut self.row(&i).0
+                );
+            }
+        }
+
+        class_vec
+    }
+
     pub fn add_row(&mut self, row: &mut Vec<f64>, target_val: &f64) {
         // call inside an expression where mut Vec<f64> is declared
         // verification for capacity and insertion
@@ -131,7 +149,6 @@ impl NumericDataset {
         self.target.push(*target_val);
     }
 }
-
 
 
 fn build_random_centers(centers: &mut HashMap<String, Vec<f64>>,
@@ -203,7 +220,7 @@ mod error_handling {
 
     pub enum AdditionError {
         CapacityError(usize),
-    IncoherentShapeError
+        IncoherentShapeError
     }
 
     // TwoDimVec
