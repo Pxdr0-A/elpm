@@ -17,7 +17,7 @@ pub fn scatter_template(x: Vec<f64>, y: Vec<f64>, target: Vec<f64>) {
         .set_label_area_size(LabelAreaPosition::Left, 40)
         .set_label_area_size(LabelAreaPosition::Bottom, 40)
         .caption("Scatter Demo", ("sans-serif", 40))
-        .build_cartesian_2d(-10.0..150.0, -10.0..150.0)
+        .build_cartesian_2d(-20.0..150.0, -20.0..150.0)
         .unwrap();
 
     ctx.configure_mesh().draw().unwrap();
