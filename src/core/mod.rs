@@ -14,9 +14,7 @@ pub struct TwoDimVec {
 #[derive(Debug, Clone)]
 pub struct NumericDataset {
     body: TwoDimVec,
-    target:Vec<f64>,
-    shape: [usize; 2],
-    capacity: [usize; 2]
+    target:Vec<f64>
 }
 
 impl TwoDimVec {
@@ -76,14 +74,35 @@ impl TwoDimVec {
         self.shape[1] = row.len();
         self.body.append(row);
     }
+
+    pub fn min_max_axis(&self, axis: &usize) -> (usize, f64, usize, f64) {
+        // in the future you can try to use concurrency
+        let mut current: f64;
+        let mut max_id: usize = 0;
+        let mut min_id: usize = 0;
+        let mut max: f64 = -f64::INFINITY;
+        let mut min: f64 = f64::INFINITY;
+        for row in 0..self.shape[0] {
+            current = self.elm(&row, axis);
+            if current > max {
+                max = current;
+                max_id = row;
+            } else if current < min {
+                min = current;
+                min_id = row;
+            }
+        }
+
+        (min_id, min, max_id, max)
+    }
 }
 
 impl NumericDataset {
     pub fn new(capacity: [usize; 2]) -> NumericDataset {
         let target = Vec::with_capacity(capacity[0]);
         let body = TwoDimVec::new(capacity);
-        let shape = [0, 0];
-        NumericDataset { body, target, shape, capacity }
+
+        NumericDataset { body, target }
     }
 
     pub fn sample(shape: [usize; 2], n_classes: usize, seed: u128) -> NumericDataset {
@@ -91,8 +110,8 @@ impl NumericDataset {
         // build cluster centers
         let mut centers: HashMap<String, Vec<f64>> = HashMap::new();
 
-        crate::core::build_random_centers(&mut centers, &shape, n_classes, seed);
-        crate::core::add_random_points(&mut dataset, &mut centers, &shape, n_classes, seed);
+        build_random_centers(&mut centers, &shape, n_classes, seed);
+        add_random_points(&mut dataset, &mut centers, &shape, n_classes, seed);
 
         dataset
     }
@@ -112,12 +131,12 @@ impl NumericDataset {
         (line_search, target_search)
     }
 
-    pub fn select_class(&self, class: f64) -> TwoDimVec {
-        let mut class_vec = TwoDimVec::new(self.shape);
+    pub fn select_class(&self, class: &f64) -> TwoDimVec {
+        let mut class_vec = TwoDimVec::new(self.body.shape);
         // this way, it is more readable but could just &mut var
         let ref mut class_vec_ref = class_vec;
-        for i in 0..self.shape[0] {
-            if self.target[i] == class {
+        for i in 0..self.body.shape[0] {
+            if &self.target[i] == class {
                 class_vec_ref.add_row(
                     // mutable ref of a row in the dataset
                     // if I wanted to access self.row(&i) from
@@ -133,7 +152,7 @@ impl NumericDataset {
     pub fn add_row(&mut self, row: &mut Vec<f64>, target_val: &f64) {
         // call inside an expression where mut Vec<f64> is declared
         // verification for capacity and insertion
-        match error_handling::check_dataset_addition(self, row.len()) {
+        match error_handling::check_addition(&mut self.body, row.len()) {
             Ok(()) => {},
             Err(error_handling::AdditionError::CapacityError(value)) => {
                 panic!("Exceeded dataset capacity on axis {}.", value)
@@ -143,8 +162,6 @@ impl NumericDataset {
             }
         }
 
-        self.shape[0] += 1;
-        self.shape[1] = row.len();
         self.body.add_row(row);
         self.target.push(*target_val);
     }
@@ -155,12 +172,12 @@ fn build_random_centers(centers: &mut HashMap<String, Vec<f64>>,
                         shape: &[usize],
                         n_classes: usize,
                         mut next_val: u128) {
-    // loop scope for contructing centers
+    // loop scope for constructing centers
     // i n classes
-    let mut added_val: f64;
+    let mut added_val: f64 = 0.0;
     for i in 0..n_classes {
         let mut added_vec: Vec<f64> = Vec::with_capacity(shape[1]);
-        // j coordenates (features)
+        // j coordinate (features)
         for _ in 0..shape[1] {
             // build center out of random numbers
             (next_val, added_val) = lcg(next_val);
@@ -172,6 +189,7 @@ fn build_random_centers(centers: &mut HashMap<String, Vec<f64>>,
     }
 }
 
+
 fn add_random_points(dataset: &mut NumericDataset,
                      centers: &mut HashMap<String, Vec<f64>>,
                      shape: &[usize],
@@ -179,7 +197,7 @@ fn add_random_points(dataset: &mut NumericDataset,
                      mut next_val: u128) {
     // rest of the rows (n_classes were already done)
     let mut class_val: f64;
-    let mut lcg_val: f64;
+    let mut lcg_val: f64 = 0.0;
     let mut key: String;
     let mut center: &Vec<f64>;
     let mut added_row: Vec<f64>;
@@ -189,7 +207,7 @@ fn add_random_points(dataset: &mut NumericDataset,
     for c in 0..shape[0] {
         (next_val, lcg_val) = lcg(next_val);
 
-        // garantee the initial values are one of each class
+        // guarantee the initial values are one of each class
         if c < n_classes {
             class_val = c as f64;
         } else {
@@ -214,6 +232,8 @@ fn add_random_points(dataset: &mut NumericDataset,
 }
 
 mod error_handling {
+    use crate::core::NumericDataset;
+
     pub enum SearchError {
         IndexError(usize)
     }
@@ -255,21 +275,9 @@ mod error_handling {
     }
 
     // NumericDataset
-    pub fn check_search(dataset: &super::NumericDataset, i: &usize) -> Result<(), SearchError> {
-        if dataset.shape[0] < *i {
+    pub fn check_search(dataset: &NumericDataset, i: &usize) -> Result<(), SearchError> {
+        if dataset.body.shape[0] < *i {
             Err(SearchError::IndexError(0))
-        } else {
-            Ok(())
-        }
-    }
-
-    pub fn check_dataset_addition(dataset: &mut super::NumericDataset, row_len: usize) -> Result<(), AdditionError> {
-        if dataset.capacity[0] == dataset.shape[0] {
-            Err(AdditionError::CapacityError(0))
-        } else if dataset.capacity[1] < row_len && dataset.shape[1] == 0 {
-            Err(AdditionError::CapacityError(1))
-        } else if dataset.shape[1] != row_len && dataset.shape[1] != 0 {
-            Err(AdditionError::IncoherentShapeError)
         } else {
             Ok(())
         }
