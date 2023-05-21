@@ -6,7 +6,7 @@ use crate::core::model::EllipsoidModel;
 use std::env;
 
 const DIM: usize = 2;
-const SHAPE: [usize; 2] = [100, DIM];
+const SHAPE: [usize; 2] = [10, DIM];
 const CLASSES: usize = 2;
 const SEED: u128 = 111;
 

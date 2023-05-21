@@ -75,7 +75,7 @@ impl TwoDimVec {
         self.body.append(row);
     }
 
-    pub fn min_max_axis(&self, axis: &usize) -> (usize, f64, usize, f64) {
+    pub fn min_max_axis(&self, axis: &usize) -> (Vec<f64>, Vec<f64>) {
         // in the future you can try to use concurrency
         let mut current: f64;
         let mut max_id: usize = 0;
@@ -93,7 +93,10 @@ impl TwoDimVec {
             }
         }
 
-        (min_id, min, max_id, max)
+        let point_min = self.row(&min_id);
+        let point_max = self.row(&max_id);
+
+        (point_min, point_max)
     }
 }
 
@@ -229,6 +232,97 @@ fn add_random_points(dataset: &mut NumericDataset,
 
         dataset.add_row(&mut added_row, &class_val);
     }
+}
+
+mod arithmetic {
+    use crate::core::TwoDimVec;
+
+    pub fn norm(v: Vec<f64>) -> f64 {
+        // compute squared sum
+        let mut result = v.into_iter().reduce(|acc, e| {
+            acc.powf(2.0) + e.powf(2.0)
+        }).unwrap();
+
+        result.sqrt()
+    }
+
+
+    pub fn sum(v: &Vec<f64>, u: &Vec<f64>) -> Vec<f64> {
+        // this can have better error handling with Option<>
+        // or even with Result<>
+        // if vector are not the same length it return empty vector
+        if v.len() == u.len() {
+            let mut count = 0;
+            let result = v.into_iter().map(|x| {
+                count += 1;
+                x + u[count-1]
+            }).collect();
+
+            result
+        } else {
+            Vec::new()
+        }
+    }
+
+    pub fn sub(v: &Vec<f64>, u: &Vec<f64>) -> Vec<f64> {
+        // this can have better error handling with Option<>
+        // or even with Result<>
+        // if vector are not the same length it return empty vector
+        if v.len() == u.len() {
+            let mut count = 0;
+            let result = v.into_iter().map(|x| {
+                count += 1;
+                x - u[count-1]
+            }).collect();
+
+            result
+        } else {
+            Vec::new()
+        }
+    }
+
+    pub fn dot(v: Vec<f64>, u: &Vec<f64>) -> f64{
+        // needs to be given a clone of v
+        // he will be cleaned at the end
+        let mut count = 0;
+        let mut result = v.into_iter().reduce(|acc, e| {
+            count += 1;
+            acc + e * u[count-1]
+        }).unwrap();
+
+        result
+    }
+
+    pub fn angle(v: Vec<f64>, u: Vec<f64>) -> f64 {
+        let result = dot(v.clone(), &u)/(norm(v.clone())*norm(u));
+
+        result.acos()
+    }
+
+    pub fn matrix_prod(a: &TwoDimVec, b: &TwoDimVec) -> TwoDimVec {
+        let mut result = TwoDimVec::new(a.shape);
+        let mut row: Vec<f64> = Vec::with_capacity(a.shape[1]);
+        let mut val_to_add: f64 = 0.0;
+        // a simple manner could be using assert_eq
+        if a.shape == b.shape {
+            for i in 0..a.shape[0] {
+                for j_aux in 0..a.shape[1] {
+                    for j in 0..a.shape[1] {
+                        val_to_add += a.elm(&i, &j) * b.elm(&j, &j_aux);
+                    }
+                    // calculated 1 element
+                    row.push(val_to_add);
+                }
+
+                result.add_row(&mut row);
+            }
+
+            result
+        } else {
+            result
+        }
+    }
+
 }
 
 mod error_handling {
